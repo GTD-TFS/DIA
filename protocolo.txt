@@ -127,6 +127,56 @@ EJEMPLO ILUSTRATIVO DE LA LISTA INTERIOR «objetos» (NO valores reales, NO valo
 ]
 En este ejemplo se omiten peso, número de serie, importe del anillo, etc., porque no se conocen; se conserva un registro por efecto. El ejemplo NO es una lista exhaustiva.
 
+PROCEDIMIENTO CONCRETO PARA CODIFICAR Y DESCARGAR — NO IMPROVISAR BASE64
+El contenido Base64 NO se redacta a mano. Debes ejecutar esta secuencia: 1) construir el objeto JSON INTERIOR con declaración y objetos; 2) serializar como JSON UTF-8; 3) codificar sus bytes mediante Base64 estándar RFC 4648; 4) insertar la cadena obtenida (sin cambios) en contenido_base64_utf8 del JSON EXTERIOR; 5) serializar el exterior como JSON UTF-8; 6) guardar el exterior en DECLARACION_CODIFICADA.txt y ofrecer el archivo; 7) decodificar nuevamente el Base64 y comprobar que recupera exactamente el JSON interior original. Base64 NO es cifrado.
+
+SI DISPONES DE PYTHON EJECUTABLE, usa exactamente este algoritmo, sustituyendo SOLO el diccionario de datos por el interior real de la entrevista:
+```python
+import json, base64
+from pathlib import Path
+datos = {...}  # Sustituir por el diccionario interior completo y real.
+assert isinstance(datos, dict) and isinstance(datos.get('objetos'), list)
+texto = json.dumps(datos, ensure_ascii=False, separators=(',', ':'))
+original = texto.encode('utf-8')
+base64_real = base64.b64encode(original).decode('ascii')
+exterior = {
+    'formato':'declaracion-ia-codificada-v5',
+    'codificacion':'base64-utf8',
+    'contenido_base64_utf8':base64_real
+}
+salida = json.dumps(exterior, ensure_ascii=False, separators=(',', ':'))
+assert base64.b64decode(base64_real, validate=True) == original
+assert json.loads(base64.b64decode(base64_real).decode('utf-8')) == datos
+assert json.loads(salida) == exterior
+ruta = Path('DECLARACION_CODIFICADA.txt')
+ruta.write_text(salida, encoding='utf-8')
+assert json.loads(ruta.read_text(encoding='utf-8')) == exterior
+# Adjuntar el archivo creado, si tu entorno permite adjuntar ficheros.
+```
+
+SI DISPONES DE JAVASCRIPT EJECUTABLE en un navegador, usa este algoritmo equivalente:
+```javascript
+const datos = {/* objeto JSON interior completo, ya generado */};
+if (!Array.isArray(datos.objetos)) throw Error('Falta objetos');
+const interior = JSON.stringify(datos);
+const utf8 = new TextEncoder().encode(interior);
+let raw = '';
+for (let i=0; i<utf8.length; i+=8192) raw += String.fromCharCode(...utf8.subarray(i, i+8192));
+const b64 = btoa(raw);
+const exterior = {formato:'declaracion-ia-codificada-v5', codificacion:'base64-utf8', contenido_base64_utf8:b64};
+const decoded = Uint8Array.from(atob(b64), ch => ch.charCodeAt(0));
+if (decoded.length !== utf8.length || !decoded.every((v,i)=>v===utf8[i])) throw Error('Base64 incorrecto');
+const comprobado = JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(decoded));
+if (JSON.stringify(comprobado) !== interior) throw Error('JSON no recuperable');
+const blob = new Blob([JSON.stringify(exterior)],{type:'text/plain;charset=utf-8'});
+const url = URL.createObjectURL(blob);
+const link = document.createElement('a');
+link.href = url; link.download = 'DECLARACION_CODIFICADA.txt';
+document.body.appendChild(link); link.click(); link.remove();
+setTimeout(()=>URL.revokeObjectURL(url),1000);
+```
+
+NO prometas un TXT ni un Base64 verificado si careces de herramienta para ejecutarlo. En tal caso proporciona únicamente un JSON interior válido y declara que no puedes producir y adjuntar un archivo codificado en ese entorno. El texto del procedimiento NO hace que la IA tenga un intérprete Python o JavaScript; debe poder ejecutar el algoritmo realmente.
 VALIDACIÓN PREVIA A ENTREGAR: (1) el JSON interior es válido y contiene «objetos», incluso si es []; (2) el JSON exterior es válido; (3) los bytes UTF-8 del JSON interior se codifican realmente a Base64 estándar sin caracteres intercalados ni espacios; (4) la decodificación del Base64 devuelve exactamente el JSON interior y vuelve a parsear correctamente; (5) el TXT descargado contiene únicamente el JSON exterior; (6) «objetos» concuerda con la declaración y no contiene características inventadas. Realiza la codificación y validación mediante herramientas reales cuando estén disponibles. NO inventes la cadena Base64 ni afirmes que has adjuntado un fichero si no puedes generarlo.
 
 Si el asistente no dispone de creación de ficheros, comunica la limitación con una única frase breve y proporciona exclusivamente el JSON exterior válido para que se guarde como .txt, SIEMPRE QUE se haya podido generar y validar realmente el Base64. Si tampoco se puede codificar y validar, ofrece el JSON interior claro como salida alternativa, sin etiquetarlo falsamente como Base64 ni inventar un archivo. El resultado nunca es una denuncia ya presentada.
