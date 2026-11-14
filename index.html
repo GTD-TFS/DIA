@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#102b49"><meta name="description" content="Prepara tu declaración con la IA que ya utilizas."><title>DIA · Preparar declaración</title>
+<style>
+:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#152e49;background:#f1f5fa}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px}main{width:min(100%,470px);background:#fff;border:1px solid #dae3ef;border-radius:22px;padding:clamp(22px,5vw,38px);box-shadow:0 18px 60px #0c30501b}.mark{display:inline-grid;place-items:center;background:#102f51;color:white;width:54px;height:54px;border-radius:17px;font-weight:850;font-size:20px;letter-spacing:-1px}h1{font-size:clamp(26px,6vw,34px);line-height:1.13;margin:18px 0 9px;letter-spacing:-.7px}p{line-height:1.55;color:#5a6e82;margin:0 0 25px}.provider{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:64px;margin:12px 0;padding:15px 20px;border-radius:13px;border:1px solid #dce5ee;background:white;cursor:pointer;font:inherit;font-weight:750;font-size:17px;color:#102b49;transition:transform .12s,background .12s}.provider:hover{background:#eef6ff;transform:translateY(-1px)}.provider:focus-visible{outline:3px solid #228be6;outline-offset:3px}.provider .name{display:flex;align-items:center;gap:12px}.symbol{display:inline-grid;place-items:center;width:29px;height:29px;border-radius:9px;color:#fff;font-size:14px;font-weight:800}.gpt{background:#0f766e}.gem{background:#4f64d9}.cla{background:#c56f4f}.arrow{font-size:24px;color:#7d91a3}.small{font-size:13px;color:#738399;margin-top:23px;line-height:1.5}.notice{background:#f0f7ff;border:1px solid #c5daf0;border-radius:12px;padding:14px;margin-top:18px;display:none;color:#244764;font-size:14px;line-height:1.5}.notice.show{display:block}.copy{margin-top:11px;border:0;border-radius:8px;background:#1f6096;color:white;font:inherit;font-weight:700;padding:10px 13px;cursor:pointer}.footer{font-size:12px;margin-top:18px;color:#667d90;line-height:1.5}a{color:#1766a6}noscript{color:#a22}</style></head>
+<body><main><div class="mark" aria-hidden="true">DIA</div><h1>Prepara tu declaración</h1><p>Elige tu asistente de inteligencia artificial. Te hará las preguntas necesarias y preparará un borrador.</p>
+<button type="button" class="provider" data-provider="chatgpt"><span class="name"><span class="symbol gpt">✳</span>ChatGPT</span><span class="arrow" aria-hidden="true">↗</span></button>
+<button type="button" class="provider" data-provider="gemini"><span class="name"><span class="symbol gem">✦</span>Gemini</span><span class="arrow" aria-hidden="true">↗</span></button>
+<button type="button" class="provider" data-provider="claude"><span class="name"><span class="symbol cla">✳</span>Claude</span><span class="arrow" aria-hidden="true">↗</span></button>
+<div class="notice" id="notice" role="status" aria-live="polite"><span id="noticeText"></span><br><button type="button" class="copy" id="copyBtn">Copiar instrucción</button></div>
+<div class="small">Es posible que debas iniciar sesión en el asistente elegido. No necesitas instalar ninguna aplicación.</div>
+<div class="footer">El resultado es un borrador sujeto a revisión, no una denuncia presentada. La información que escribas en el asistente será tratada por su proveedor.</div>
+<noscript>Activa JavaScript para abrir tu asistente con las instrucciones preparadas.</noscript>
+</main><script>
+'use strict';
+const protocolUrl=new URL('./protocolo.txt',location.href).href;
+const message=`Consulta ${protocolUrl} y sigue íntegramente su protocolo DIA. Realiza la entrevista formulando solo preguntas. Comienza ahora con la primera pregunta.`;
+const destinations={chatgpt:'https://chatgpt.com/',gemini:'https://gemini.google.com/',claude:'https://claude.ai/new'};
+const notice=document.getElementById('notice'),noticeText=document.getElementById('noticeText');
+function showNotice(msg){noticeText.textContent=msg;notice.classList.add('show')}
+async function copyPrompt(){try{await navigator.clipboard.writeText(message);return true}catch{try{const el=document.createElement('textarea');el.value=message;el.style.position='fixed';el.style.opacity='0';document.body.appendChild(el);el.select();const ok=document.execCommand('copy');el.remove();return ok}catch{return false}}}
+document.getElementById('copyBtn').addEventListener('click',async()=>{if(await copyPrompt())showNotice('Instrucción copiada. Pégala en el chat y pulsa Enviar.');else{showNotice('El navegador no permite copiar automáticamente. Selecciona este texto para copiarlo: '+message)}});
+for(const btn of document.querySelectorAll('[data-provider]'))btn.addEventListener('click',async()=>{
+const p=btn.dataset.provider;const copying=copyPrompt();
+const link=p==='chatgpt'?destinations[p]+'?q='+encodeURIComponent(message):p==='claude'?destinations[p]+'?q='+encodeURIComponent(message):destinations[p];
+// Abrir en pestaña aparte; si el navegador bloquea la apertura, mostrar alternativa.
+const tab=window.open(link,'_blank');
+if(tab)tab.opener=null;
+const copied=await copying;
+if(!tab){showNotice('Si no se ha abierto una pestaña nueva, permite ventanas emergentes. '+(copied?'La instrucción ya está copiada.':'Pulsa «Copiar instrucción».'));return}
+showNotice(p==='gemini'?'Gemini abierto. Pega la instrucción copiada en el chat y pulsa Enviar.': 'Asistente abierto. Si el mensaje no aparece escrito automáticamente, pégalo y pulsa Enviar.');
+});
+</script></body></html>
