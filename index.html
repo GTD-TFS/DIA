@@ -6,27 +6,51 @@
 <button type="button" class="provider" data-provider="chatgpt"><span class="name"><span class="symbol gpt">✳</span>ChatGPT</span><span class="arrow" aria-hidden="true">↗</span></button>
 <button type="button" class="provider" data-provider="gemini"><span class="name"><span class="symbol gem">✦</span>Gemini</span><span class="arrow" aria-hidden="true">↗</span></button>
 <button type="button" class="provider" data-provider="claude"><span class="name"><span class="symbol cla">✳</span>Claude</span><span class="arrow" aria-hidden="true">↗</span></button>
-<div class="notice" id="notice" role="status" aria-live="polite"><span id="noticeText"></span><br><button type="button" class="copy" id="copyBtn">Copiar instrucción</button></div>
+<div class="notice" id="notice" role="status" aria-live="polite"><span id="noticeText"></span><br><button type="button" class="copy" id="copyBtn">Copiar instrucciones</button></div>
 <div class="small">Es posible que debas iniciar sesión en el asistente elegido. No necesitas instalar ninguna aplicación.</div>
 <div class="footer">El resultado es un borrador sujeto a revisión, no una denuncia presentada. La información que escribas en el asistente será tratada por su proveedor.</div>
 <noscript>Activa JavaScript para abrir tu asistente con las instrucciones preparadas.</noscript>
 </main><script>
 'use strict';
 const protocolUrl=new URL('./protocolo.txt',location.href).href;
-const message=`Consulta ${protocolUrl} y sigue íntegramente su protocolo DIA. Realiza la entrevista formulando solo preguntas. Comienza ahora con la primera pregunta.`;
-const destinations={chatgpt:'https://chatgpt.com/',gemini:'https://gemini.google.com/',claude:'https://claude.ai/new'};
+const destinations={chatgpt:'https://chatgpt.com/',gemini:'https://gemini.google.com/app',claude:'https://claude.ai/new'};
 const notice=document.getElementById('notice'),noticeText=document.getElementById('noticeText');
+let prepared='';
 function showNotice(msg){noticeText.textContent=msg;notice.classList.add('show')}
-async function copyPrompt(){try{await navigator.clipboard.writeText(message);return true}catch{try{const el=document.createElement('textarea');el.value=message;el.style.position='fixed';el.style.opacity='0';document.body.appendChild(el);el.select();const ok=document.execCommand('copy');el.remove();return ok}catch{return false}}}
-document.getElementById('copyBtn').addEventListener('click',async()=>{if(await copyPrompt())showNotice('Instrucción copiada. Pégala en el chat y pulsa Enviar.');else{showNotice('El navegador no permite copiar automáticamente. Selecciona este texto para copiarlo: '+message)}});
+async function protocolMessage(){
+ const response=await fetch(protocolUrl,{cache:'no-store'});
+ if(!response.ok)throw Error('No se ha podido cargar el protocolo: '+response.status);
+ const protocol=(await response.text()).trim();
+ if(protocol.length<2000||!protocol.includes('PROTOCOLO DIA'))throw Error('El protocolo no está completo.');
+ return 'Sigue íntegramente estas instrucciones durante esta conversación. Comienza inmediatamente formulando la primera pregunta; durante la entrevista solo formula preguntas.\n\n'+protocol;
+}
+async function copyText(value){
+ try{await navigator.clipboard.writeText(value);return true}
+ catch{
+  const el=document.createElement('textarea');el.value=value;el.style.position='fixed';el.style.opacity='0';document.body.appendChild(el);el.select();
+  let ok=false;try{ok=document.execCommand('copy')}catch{}el.remove();return ok;
+ }
+}
+async function prepare(){
+ prepared=await protocolMessage();
+ const ok=await copyText(prepared);
+ if(!ok)throw Error('El navegador no permitió copiar las instrucciones.');
+ return true;
+}
+document.getElementById('copyBtn').addEventListener('click',async()=>{
+ try{await prepare();showNotice('Instrucciones copiadas. Abre tu IA, pega y pulsa Enviar.')}
+ catch(err){showNotice(err.message+' Abre DIA desde su dirección web publicada (https://gtd-tfs.github.io/DIA/).')}
+});
 for(const btn of document.querySelectorAll('[data-provider]'))btn.addEventListener('click',async()=>{
-const p=btn.dataset.provider;const copying=copyPrompt();
-const link=p==='chatgpt'?destinations[p]+'?q='+encodeURIComponent(message):p==='claude'?destinations[p]+'?q='+encodeURIComponent(message):destinations[p];
-// Abrir en pestaña aparte; si el navegador bloquea la apertura, mostrar alternativa.
-const tab=window.open(link,'_blank');
-if(tab)tab.opener=null;
-const copied=await copying;
-if(!tab){showNotice('Si no se ha abierto una pestaña nueva, permite ventanas emergentes. '+(copied?'La instrucción ya está copiada.':'Pulsa «Copiar instrucción».'));return}
-showNotice(p==='gemini'?'Gemini abierto. Pega la instrucción copiada en el chat y pulsa Enviar.': 'Asistente abierto. Si el mensaje no aparece escrito automáticamente, pégalo y pulsa Enviar.');
+ const p=btn.dataset.provider;
+ // Abrimos en la pulsación del usuario para reducir bloqueos de ventanas emergentes.
+ const tab=window.open(destinations[p],'_blank');
+ if(tab)tab.opener=null;
+ try{
+  await prepare();
+  showNotice((tab?'El asistente está abierto. ':'Abre tu asistente. ')+'Instrucciones completas copiadas: solo tienes que PEGAR y pulsar ENVIAR. No hace falta adjuntar archivos ni escribir enlaces.');
+ }catch(err){
+  showNotice('No se pudo preparar la entrevista: '+err.message+'. Comprueba que la página esté publicada correctamente.');
+ }
 });
 </script></body></html>
