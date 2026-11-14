@@ -16,6 +16,10 @@ button:active{transform:scale(.985)}
 button:focus-visible{outline:3px solid #88caff;outline-offset:3px}
 #copy{background:#e6f0ff;color:#0d2944;border:0;min-height:90px}
 #copy:hover{background:#fff}
+#attach{background:#d2e9fa;color:#0d2944;border:0;min-height:76px}
+#attach:hover{background:#eff8ff}
+#filehelp{color:#c6d9e9;font-size:13px;line-height:1.4;text-align:center;margin:-7px 0 0}
+#filehelp[hidden]{display:none}
 #choices{display:grid;gap:12px}
 #choices[hidden]{display:none}
 .provider{display:flex;align-items:center;justify-content:center;gap:12px}
@@ -26,6 +30,8 @@ button:focus-visible{outline:3px solid #88caff;outline-offset:3px}
 <body>
 <main>
 <button type="button" id="copy">COPIAR PROMPT</button>
+<button type="button" id="attach">DESCARGAR PROTOCOLO PARA ADJUNTAR</button>
+<p id="filehelp" hidden>Adjunta DIA_PROTOCOLO.txt con el clip o el botón + del asistente. No necesitas pegar todo el texto.</p>
 <div id="choices" hidden>
 <button class="provider" type="button" data-url="https://chatgpt.com/"><span>✳</span>CHATGPT</button>
 <button class="provider" type="button" data-url="https://gemini.google.com/app"><span>✦</span>GEMINI</button>
@@ -37,6 +43,15 @@ button:focus-visible{outline:3px solid #88caff;outline-offset:3px}
 'use strict';
 const copyButton=document.getElementById('copy');
 const choices=document.getElementById('choices');
+const attachButton=document.getElementById('attach');
+const fileHelp=document.getElementById('filehelp');
+attachButton.addEventListener('click',()=>{
+ const link=document.createElement('a');
+ link.href=new URL('./DIA_PROTOCOLO.txt',location.href).href;
+ link.download='DIA_PROTOCOLO.txt';
+ document.body.appendChild(link);link.click();link.remove();
+ choices.hidden=false;fileHelp.hidden=false;
+});
 const protocolUrl=new URL('./protocolo.txt',location.href);
 let promptPromise=null;
 function encodeUtf8Base64(value){
