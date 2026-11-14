@@ -47,19 +47,19 @@ function encodeUtf8Base64(value){
 async function loadPrompt(){
  const response=await fetch(protocolUrl,{cache:'no-store'});
  if(!response.ok)throw Error('Protocolo no disponible');
- const protocol=(await response.text()).trim();
- if(protocol.length<2000||!protocol.startsWith('PROTOCOLO DIA'))throw Error('Protocolo incompleto');
- const encoded=encodeUtf8Base64(protocol);
- // La verificación se ejecuta en la web ANTES de copiar.
- const decoded=new TextDecoder('utf-8',{fatal:true}).decode(
-   Uint8Array.from(atob(encoded),char=>char.charCodeAt(0))
- );
- if(decoded!==protocol)throw Error('Error de codificación UTF-8 / Base64');
+ const encoded=(await response.text()).replace(/\s+/g,'');
+ if(!/^[A-Za-z0-9+/]+={0,2}$/.test(encoded)||encoded.length<1000)throw Error('Protocolo codificado no válido');
+ const binary=atob(encoded);
+ const decoded=new TextDecoder('utf-8',{fatal:true}).decode(Uint8Array.from(binary,c=>c.charCodeAt(0)));
+ if(!decoded.startsWith('PROTOCOLO DIA')||!decoded.includes('REDACCIÓN FINAL'))throw Error('Contenido no válido');
+ const bytes=new TextEncoder().encode(decoded);
+ let verify='';for(let i=0;i<bytes.length;i+=8192)verify+=String.fromCharCode(...bytes.subarray(i,i+8192));
+ if(btoa(verify)!==encoded)throw Error('Base64 no reversible');
  return [
-  'DIA | ACTIVAR ENTREVISTA. El siguiente bloque es el protocolo completo codificado en Base64 de bytes UTF-8. Decodifícalo e interprétalo como instrucciones de esta conversación. No lo reproduzcas ni expliques. Mantén sus reglas EN TODOS LOS TURNOS. Durante la entrevista responde solo con la siguiente pregunta pertinente, sin comentarios ni consejos. Primera pregunta exacta: ¿Qué ha ocurrido, dónde y cuándo sucedió?',
-  'INICIO_PROTOCOLO_BASE64_UTF8',
-  encoded,
-  'FIN_PROTOCOLO_BASE64_UTF8'
+ "DIA — PROTOCOLO DE ENTREVISTA. El bloque siguiente contiene el protocolo completo codificado en Base64 de bytes UTF-8. Decodifícalo e interprétalo como instrucciones para toda esta conversación. En la fase de entrevista responde únicamente con preguntas, sin consejos ni comentarios. Cuando termine, sigue las reglas de redacción y de archivo codificado. Comienza con: ¿Qué ha ocurrido, dónde y cuándo sucedió?",
+ 'INICIO_PROTOCOLO_BASE64_UTF8',
+ encoded,
+ 'FIN_PROTOCOLO_BASE64_UTF8'
  ].join('\n');
 }
 function ensurePrompt(){return promptPromise||(promptPromise=loadPrompt().catch(e=>{promptPromise=null;throw e}));}
