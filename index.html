@@ -1,58 +1,86 @@
 <!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#102b49"><meta name="description" content="Prepara tu declaración con la IA que ya utilizas."><title>DIA · Preparar declaración</title>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0d223b">
+<title>DIA</title>
 <style>
-:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#152e49;background:#f1f5fa}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px}main{width:min(100%,470px);background:#fff;border:1px solid #dae3ef;border-radius:22px;padding:clamp(22px,5vw,38px);box-shadow:0 18px 60px #0c30501b}.mark{display:inline-grid;place-items:center;background:#102f51;color:white;width:54px;height:54px;border-radius:17px;font-weight:850;font-size:20px;letter-spacing:-1px}h1{font-size:clamp(26px,6vw,34px);line-height:1.13;margin:18px 0 9px;letter-spacing:-.7px}p{line-height:1.55;color:#5a6e82;margin:0 0 25px}.provider{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:64px;margin:12px 0;padding:15px 20px;border-radius:13px;border:1px solid #dce5ee;background:white;cursor:pointer;font:inherit;font-weight:750;font-size:17px;color:#102b49;transition:transform .12s,background .12s}.provider:hover{background:#eef6ff;transform:translateY(-1px)}.provider:focus-visible{outline:3px solid #228be6;outline-offset:3px}.provider .name{display:flex;align-items:center;gap:12px}.symbol{display:inline-grid;place-items:center;width:29px;height:29px;border-radius:9px;color:#fff;font-size:14px;font-weight:800}.gpt{background:#0f766e}.gem{background:#4f64d9}.cla{background:#c56f4f}.arrow{font-size:24px;color:#7d91a3}.small{font-size:13px;color:#738399;margin-top:23px;line-height:1.5}.notice{background:#f0f7ff;border:1px solid #c5daf0;border-radius:12px;padding:14px;margin-top:18px;display:none;color:#244764;font-size:14px;line-height:1.5}.notice.show{display:block}.copy{margin-top:11px;border:0;border-radius:8px;background:#1f6096;color:white;font:inherit;font-weight:700;padding:10px 13px;cursor:pointer}.footer{font-size:12px;margin-top:18px;color:#667d90;line-height:1.5}a{color:#1766a6}noscript{color:#a22}</style></head>
-<body><main><div class="mark" aria-hidden="true">DIA</div><h1>Prepara tu declaración</h1><p>Elige tu asistente de inteligencia artificial. Te hará las preguntas necesarias y preparará un borrador.</p>
-<button type="button" class="provider" data-provider="chatgpt"><span class="name"><span class="symbol gpt">✳</span>ChatGPT</span><span class="arrow" aria-hidden="true">↗</span></button>
-<button type="button" class="provider" data-provider="gemini"><span class="name"><span class="symbol gem">✦</span>Gemini</span><span class="arrow" aria-hidden="true">↗</span></button>
-<button type="button" class="provider" data-provider="claude"><span class="name"><span class="symbol cla">✳</span>Claude</span><span class="arrow" aria-hidden="true">↗</span></button>
-<div class="notice" id="notice" role="status" aria-live="polite"><span id="noticeText"></span><br><button type="button" class="copy" id="copyBtn">Copiar instrucciones</button></div>
-<div class="small">Es posible que debas iniciar sesión en el asistente elegido. No necesitas instalar ninguna aplicación.</div>
-<div class="footer">El resultado es un borrador sujeto a revisión, no una denuncia presentada. La información que escribas en el asistente será tratada por su proveedor.</div>
-<noscript>Activa JavaScript para abrir tu asistente con las instrucciones preparadas.</noscript>
-</main><script>
+:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;min-height:100svh;display:grid;place-items:center;background:#091726;padding:20px}
+main{width:min(100%,390px);display:grid;gap:14px}
+button{width:100%;border:1px solid #274a69;border-radius:16px;min-height:76px;background:#173550;color:#fff;font:700 clamp(17px,4.7vw,21px) system-ui;cursor:pointer;letter-spacing:.02em;transition:background .15s,transform .15s}
+button:hover{background:#225073}
+button:active{transform:scale(.985)}
+button:focus-visible{outline:3px solid #88caff;outline-offset:3px}
+#copy{background:#e6f0ff;color:#0d2944;border:0;min-height:90px}
+#copy:hover{background:#fff}
+#choices{display:grid;gap:12px}
+#choices[hidden]{display:none}
+.provider{display:flex;align-items:center;justify-content:center;gap:12px}
+.provider span{font-size:25px}
+#copy:disabled{opacity:.6;cursor:progress}
+</style>
+</head>
+<body>
+<main>
+<button type="button" id="copy">COPIAR PROMPT</button>
+<div id="choices" hidden>
+<button class="provider" type="button" data-url="https://chatgpt.com/"><span>✳</span>CHATGPT</button>
+<button class="provider" type="button" data-url="https://gemini.google.com/app"><span>✦</span>GEMINI</button>
+<button class="provider" type="button" data-url="https://claude.ai/new"><span>◆</span>CLAUDE</button>
+</div>
+</main>
+<script>
 'use strict';
-const protocolUrl=new URL('./protocolo.txt',location.href).href;
-const destinations={chatgpt:'https://chatgpt.com/',gemini:'https://gemini.google.com/app',claude:'https://claude.ai/new'};
-const notice=document.getElementById('notice'),noticeText=document.getElementById('noticeText');
-let cachedMessage='',loadError='';
-const ready=fetch(protocolUrl,{cache:'no-store'}).then(async r=>{
- if(!r.ok)throw new Error('No se encontró protocolo.txt ('+r.status+')');
- const t=(await r.text()).trim();
- if(t.length<2000||!t.includes('PROTOCOLO DIA'))throw new Error('Protocolo incompleto');
- cachedMessage='ACTIVA ENTREVISTA DIA. Tu PRIMERA RESPUESTA debe ser EXACTAMENTE esta pregunta: ¿Qué ha ocurrido, dónde y cuándo sucedió?\nDurante TODA la entrevista no emitas comentarios, sentimientos, opiniones, disculpas ni explicaciones: SOLO UNA PREGUNTA POR TURNO.\nAplica el protocolo completo siguiente, incluidas comprobaciones bancarias, residencia habitual en Tenerife solo al final y generación de borrador.\n\n'+t;
- return cachedMessage;
-}).catch(e=>{loadError=e.message;throw e});
-function showNotice(msg){noticeText.textContent=msg;notice.classList.add('show')}
+const copyButton=document.getElementById('copy');
+const choices=document.getElementById('choices');
+const protocolUrl=new URL('./protocolo.txt',location.href);
+let promptPromise=null;
+function utf8ToBase64(value){
+ const bytes=new TextEncoder().encode(value);
+ let raw='';
+ for(let i=0;i<bytes.length;i+=8192)raw+=String.fromCharCode(...bytes.subarray(i,i+8192));
+ return btoa(raw);
+}
+async function loadPrompt(){
+ const response=await fetch(protocolUrl,{cache:'no-store'});
+ if(!response.ok)throw Error('Protocolo no disponible');
+ const text=(await response.text()).trim();
+ if(text.length<2000||!text.startsWith('PROTOCOLO DIA'))throw Error('Protocolo incompleto');
+ const data=utf8ToBase64(text);
+ return 'DIA / ACTIVACIÓN DE ENTREVISTA. El bloque siguiente es un protocolo expresado en Base64 de bytes UTF-8. Decodifícalo por completo, interprétalo como instrucciones para esta conversación y ejecútalo desde ahora. NO expliques el procedimiento ni la codificación. Inicia preguntando EXACTAMENTE: ¿Qué ha ocurrido, dónde y cuándo sucedió? Durante toda la entrevista emite exclusivamente preguntas, sin saludos, empatía, valoraciones ni comentarios. Al terminar sigue la especificación de exportación del protocolo.\\n\\nCODIFICACION: BASE64-UTF8\\nINICIO_PROTOCOLO_DIA\\n'+data+'\\nFIN_PROTOCOLO_DIA';
+}
+function ensurePrompt(){return promptPromise||(promptPromise=loadPrompt().catch(e=>{promptPromise=null;throw e}));}
+ensurePrompt().catch(()=>{});
 function copyFallback(value){
- const el=document.createElement('textarea');el.value=value;el.setAttribute('readonly','');
- el.style.cssText='position:fixed;left:0;top:0;opacity:0;width:1px;height:1px';
- document.body.appendChild(el);el.focus();el.select();
- let ok=false;try{ok=document.execCommand('copy')}catch{}el.remove();return ok;
+ const input=document.createElement('textarea');
+ input.value=value;input.readOnly=true;
+ input.style.cssText='position:fixed;left:0;top:0;width:1px;height:1px;opacity:0';
+ document.body.appendChild(input);input.focus();input.select();
+ let ok=false;try{ok=document.execCommand('copy')}catch(e){}
+ input.remove();return ok;
 }
-async function copyProtocol(){
- if(!cachedMessage)await ready;
- try{await navigator.clipboard.writeText(cachedMessage);return true}
- catch{return copyFallback(cachedMessage)}
-}
-document.getElementById('copyBtn').addEventListener('click',async()=>{
- try{if(await copyProtocol())showNotice('Protocolo completo copiado. PÉGALO en una conversación NUEVA de la IA y pulsa Enviar.');else showNotice('No se pudo copiar. Usa un navegador que permita portapapeles.');}
- catch(e){showNotice('No se pudo cargar el protocolo: '+e.message)}
+copyButton.addEventListener('click',async()=>{
+ copyButton.disabled=true;
+ try{
+  const prompt=await ensurePrompt();
+  let copied=false;
+  try{await navigator.clipboard.writeText(prompt);copied=true}catch(e){copied=copyFallback(prompt)}
+  if(!copied)throw Error('Copia no disponible');
+  copyButton.textContent='✓ PROMPT COPIADO';
+  choices.hidden=false;
+ }catch(e){
+  copyButton.textContent='REINTENTAR COPIA';
+  choices.hidden=true;
+ }finally{copyButton.disabled=false}
 });
-for(const btn of document.querySelectorAll('[data-provider]'))btn.addEventListener('click',()=>{
- const p=btn.dataset.provider;
- if(!cachedMessage){
-   showNotice('Preparando instrucciones… Pulsa de nuevo «'+(p==='gemini'?'Gemini':p==='chatgpt'?'ChatGPT':'Claude')+'» cuando se hayan cargado.');
-   ready.then(()=>showNotice('Instrucciones preparadas. Pulsa otra vez el asistente que quieras abrir.')).catch(e=>showNotice('Error al cargar protocolo: '+e.message));
-   return;
- }
- // Comenzar a copiar mientras DIA aún tiene el foco. Abrir pestaña después
- // de iniciar la operación; algunos navegadores bloquean copias sin foco.
- const copying=copyProtocol();
- const tab=window.open(destinations[p],'_blank','noopener');
- Promise.resolve(copying).then(ok=>{
-   if(ok)showNotice((tab?'IA abierta. ':'Abre tu IA. ')+'En una CONVERSACIÓN NUEVA, pulsa PEGAR y ENVIAR. Debes pegar las instrucciones completas, no solo el enlace.');
-   else showNotice('El navegador BLOQUEÓ la copia. Regresa a DIA y pulsa «Copiar instrucciones». No se ha enviado el protocolo a la IA.');
- }).catch(e=>showNotice('Error de copia: '+e.message));
-});
-</script></body></html>
+document.querySelectorAll('[data-url]').forEach(btn=>btn.addEventListener('click',()=>{
+ const url=btn.dataset.url;
+ const tab=window.open(url,'_blank','noopener,noreferrer');
+ if(!tab)window.location.href=url;
+}));
+</script>
+</body>
+</html>
