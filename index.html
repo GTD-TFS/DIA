@@ -88,8 +88,9 @@ copyButton.addEventListener('click',async()=>{
 });
 document.querySelectorAll('[data-url]').forEach(btn=>btn.addEventListener('click',()=>{
  const url=btn.dataset.url;
- const tab=window.open(url,'_blank','noopener,noreferrer');
- if(!tab)window.location.href=url;
+ const tab=window.open(url,'_blank');
+ if(tab){try{tab.opener=null}catch(e){}}
+ else window.location.assign(url);
 }));
 </script>
 </body>
