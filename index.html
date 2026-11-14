@@ -56,7 +56,7 @@ async function loadPrompt(){
   'FIN DE INSTRUCCIONES COMPLETAS',
   'REGLA FINAL: durante toda la entrevista, NINGÚN TEXTO QUE NO SEA LA SIGUIENTE PREGUNTA.'
  ];
- return lead.join('\\n');
+ return lead.join('\n');
 }
 function ensurePrompt(){return promptPromise||(promptPromise=loadPrompt().catch(e=>{promptPromise=null;throw e}));}
 ensurePrompt().catch(()=>{});
