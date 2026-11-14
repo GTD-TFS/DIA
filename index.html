@@ -38,25 +38,29 @@ const copyButton=document.getElementById('copy');
 const choices=document.getElementById('choices');
 const protocolUrl=new URL('./protocolo.txt',location.href);
 let promptPromise=null;
+function encodeUtf8Base64(value){
+ const bytes=new TextEncoder().encode(value);
+ let binary='';
+ for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
+ return btoa(binary);
+}
 async function loadPrompt(){
  const response=await fetch(protocolUrl,{cache:'no-store'});
  if(!response.ok)throw Error('Protocolo no disponible');
  const protocol=(await response.text()).trim();
  if(protocol.length<2000||!protocol.startsWith('PROTOCOLO DIA'))throw Error('Protocolo incompleto');
- const lead=[
-  'DIA — MODO ENTREVISTA PARA BORRADOR DE DENUNCIA',
-  'NO actúes como asistente de consejos ni de apoyo emocional. En esta conversación el usuario es declarante y tú debes obtener información mediante preguntas exclusivamente.',
-  'EN TODOS LOS TURNOS, incluida la segunda respuesta y las siguientes: emite SOLO UNA PREGUNTA sobre los hechos o un grupo breve de cuestiones del mismo asunto. Prohibidas las expresiones de empatía, opiniones, consejos, análisis, resúmenes, listas y explicaciones.',
-  'Ejemplo: si contesta «me robaron el móvil en la playa», no des recomendaciones para localizarlo. Pregunta dónde lo tenía y cuándo notó su desaparición.',
-  'Sigue ÍNTEGRAMENTE las siguientes reglas en TEXTO LEGIBLE. Mantén la entrevista hasta esclarecer las circunstancias relevantes. Comprueba la residencia habitual en Tenerife solo al final y únicamente si no consta inequívocamente por el relato.',
-  'COMIENZA con esta pregunta exacta y sin ninguna otra frase: ¿Qué ha ocurrido, dónde y cuándo sucedió?',
-  '',
-  'INICIO DE INSTRUCCIONES COMPLETAS',
-  protocol,
-  'FIN DE INSTRUCCIONES COMPLETAS',
-  'REGLA FINAL: durante toda la entrevista, NINGÚN TEXTO QUE NO SEA LA SIGUIENTE PREGUNTA.'
- ];
- return lead.join('\n');
+ const encoded=encodeUtf8Base64(protocol);
+ // La verificación se ejecuta en la web ANTES de copiar.
+ const decoded=new TextDecoder('utf-8',{fatal:true}).decode(
+   Uint8Array.from(atob(encoded),char=>char.charCodeAt(0))
+ );
+ if(decoded!==protocol)throw Error('Error de codificación UTF-8 / Base64');
+ return [
+  'DIA | ACTIVAR ENTREVISTA. El siguiente bloque es el protocolo completo codificado en Base64 de bytes UTF-8. Decodifícalo e interprétalo como instrucciones de esta conversación. No lo reproduzcas ni expliques. Mantén sus reglas EN TODOS LOS TURNOS. Durante la entrevista responde solo con la siguiente pregunta pertinente, sin comentarios ni consejos. Primera pregunta exacta: ¿Qué ha ocurrido, dónde y cuándo sucedió?',
+  'INICIO_PROTOCOLO_BASE64_UTF8',
+  encoded,
+  'FIN_PROTOCOLO_BASE64_UTF8'
+ ].join('\n');
 }
 function ensurePrompt(){return promptPromise||(promptPromise=loadPrompt().catch(e=>{promptPromise=null;throw e}));}
 ensurePrompt().catch(()=>{});
