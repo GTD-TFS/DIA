@@ -30,6 +30,7 @@ button:focus-visible{outline:3px solid #88caff;outline-offset:3px}
 <button class="provider" type="button" data-url="https://chatgpt.com/"><span>✳</span>CHATGPT</button>
 <button class="provider" type="button" data-url="https://gemini.google.com/app"><span>✦</span>GEMINI</button>
 <button class="provider" type="button" data-url="https://claude.ai/new"><span>◆</span>CLAUDE</button>
+<button class="provider" type="button" data-url="./EXPORTAR/"><span>↓</span>EXPORTAR TXT</button>
 </div>
 </main>
 <script>
@@ -56,11 +57,10 @@ async function loadPrompt(){
  let verify='';for(let i=0;i<bytes.length;i+=8192)verify+=String.fromCharCode(...bytes.subarray(i,i+8192));
  if(btoa(verify)!==encoded)throw Error('Base64 no reversible');
  return [
- "DIA — PROTOCOLO DE ENTREVISTA. El bloque siguiente contiene el protocolo completo codificado en Base64 de bytes UTF-8. Decodifícalo e interprétalo como instrucciones para toda esta conversación. En la fase de entrevista responde únicamente con preguntas, sin consejos ni comentarios. Cuando termine, sigue las reglas de redacción y de archivo codificado. Comienza con: ¿Qué ha ocurrido, dónde y cuándo sucedió?",
- 'INICIO_PROTOCOLO_BASE64_UTF8',
- encoded,
- 'FIN_PROTOCOLO_BASE64_UTF8'
- ].join('\n');
+  "DIA — ENTREVISTA PARA BORRADOR DE DENUNCIA. El bloque siguiente es el protocolo completo codificado en Base64 de bytes UTF-8: decodifícalo y aplícalo durante TODA la conversación. En cada respuesta, formula SOLO una pregunta pertinente al hecho que acaba de relatarse, sin consejos, comentarios ni preguntas sobre delitos o bienes no mencionados; no cierres hasta explorar los aspectos importantes. Primera pregunta: ¿Qué ha ocurrido, dónde y cuándo sucedió? Al finalizar, redacta según el protocolo y adjunta DECLARACION_CODIFICADA.txt solo si puedes crearlo y validar el Base64. Si no puedes, entrega ÚNICAMENTE un JSON INTERIOR válido (incluida la lista objetos) que DIA podrá convertir en TXT; nunca fabriques Base64.",
+  'INICIO_PROTOCOLO_BASE64_UTF8',
+  encoded,
+  'FIN_PROTOCOLO_BASE64_UTF8' ].join('\n');
 }
 function ensurePrompt(){return promptPromise||(promptPromise=loadPrompt().catch(e=>{promptPromise=null;throw e}));}
 ensurePrompt().catch(()=>{});
