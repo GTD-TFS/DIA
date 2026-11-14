@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+:root{font-family:'DM Sans',system-ui,-apple-system,sans-serif;color:#142f4b;background:#f4f7fb}
+*{box-sizing:border-box}body{margin:0}button,textarea{font:inherit}button{cursor:pointer}
+.page{min-height:100vh}.header{display:flex;align-items:center;gap:13px;background:#fff;border-bottom:1px solid #dfe8f1;padding:16px max(20px,calc((100vw - 900px)/2))}
+.mark{width:53px;height:53px;border-radius:15px;display:grid;place-items:center;background:#11375d;color:white;font-size:20px;font-weight:800;letter-spacing:-.8px}
+.brand{display:grid;gap:3px}.brand strong{font-size:16px}.brand span{font-size:12px;color:#698397}
+.privacy{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:12px;color:#3a647e;background:#f0f6fb;border:1px solid #dce7ef;border-radius:25px;padding:8px 11px}
+.layout{max-width:730px;margin:0 auto;padding:38px 22px 52px}
+.intro h1{font-size:clamp(25px,5vw,36px);line-height:1.14;letter-spacing:-1px;margin:0 0 9px;font-weight:800}.intro p{font-size:15px;color:#72869c;margin:0 0 27px}
+.panel{padding:clamp(20px,4.5vw,34px);background:white;border:1px solid #dce6ef;border-radius:20px;box-shadow:0 15px 42px #12395a0d}
+.eyebrow{font-size:11px;font-weight:800;letter-spacing:1.3px;color:#3677a9;margin-bottom:13px}
+.question{font-size:clamp(19px,4.5vw,24px);font-weight:700;line-height:1.43;letter-spacing:-.4px;margin-bottom:29px}
+label{display:block;font-size:13px;font-weight:800;color:#546e83;margin-bottom:10px}
+textarea{width:100%;display:block;resize:vertical;min-height:150px;padding:15px;border:1.5px solid #d3e1ed;background:#f9fbfe;border-radius:13px;outline:none;font-size:16px;line-height:1.5;color:#142f4b}
+textarea:focus{border-color:#2d78bb;box-shadow:0 0 0 3px #2d78bb20}
+.actions{display:flex;gap:12px;margin-top:18px}
+.main{background:#14558c;border:0;color:white;min-height:54px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:13px 20px;font-weight:800;flex:1}
+.main:hover{background:#0d4371}.main:disabled{opacity:.48;cursor:not-allowed}
+.outline{border:1px solid #cbdce9;background:#fff;color:#456178;border-radius:12px;min-height:54px;padding:12px 24px;font-weight:700}
+.outline:disabled{opacity:.4;cursor:not-allowed}
+.prior{width:100%;display:flex;align-items:center;justify-content:space-between;margin-top:28px;padding:19px 0 2px;border:0;border-top:1px solid #e7edf3;background:transparent;color:#637e94;font-size:13px;font-weight:700}
+.history{max-height:350px;overflow:auto;margin-top:15px}.history>div{padding:13px 0;border-bottom:1px solid #e7edf3;font-size:13px;line-height:1.5}.history p{margin:5px 0 0;color:#687e92}
+.foot{padding:29px 8px;text-align:center}.foot p{font-size:12px;color:#72889b;line-height:1.6;margin:0 0 8px}.reset{background:transparent;border:0;color:#476b84;display:inline-flex;align-items:center;gap:8px;margin-top:14px;font-size:13px;font-weight:700}
+.error{display:flex;align-items:flex-start;gap:9px;padding:14px;margin-top:17px;border-radius:10px;background:#fff3ef;color:#a0442a;font-size:13px;line-height:1.5}
+.ready{display:flex;align-items:center;gap:9px;font-size:14px;color:#207256;font-weight:800;margin-bottom:20px}
+.preview{white-space:pre-wrap;max-height:330px;overflow:auto;background:#f8fafc;border:1px solid #e0e8ef;border-radius:10px;padding:19px;color:#314f67;font-size:14px;line-height:1.8;margin-bottom:17px}
+.meta{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid #e9eff4;font-size:14px;color:#5b7287}.meta b{color:#23425c}
+.full{width:100%;margin-top:22px}.confirmation{font-size:13px;color:#287456;margin-top:15px;text-align:center}
+@media(max-width:530px){.header{padding:13px 16px}.layout{padding:26px 14px}.panel{border-radius:17px}.privacy{width:36px;height:36px;justify-content:center;padding:0;font-size:0}.privacy svg{width:18px;height:18px}.actions{gap:9px}.main,.outline{padding:13px 14px}.intro p{margin-bottom:20px}}
